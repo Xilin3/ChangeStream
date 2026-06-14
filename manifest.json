@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "B站直播间画面替换",
+  "version": "1.0.0",
+  "description": "将当前B站直播间画面替换为另一个直播间的画面",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://live.bilibili.com/*"],
+      "js": ["lib/flv.min.js", "mse-delay.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

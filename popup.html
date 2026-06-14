@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 360px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f4f4;
+    }
+    h1 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .input-group { margin-bottom: 12px; }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="text"]:focus { border-color: #00a1d6; }
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      cursor: pointer;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .btn-primary { background: #00a1d6; color: white; }
+    .btn-secondary { background: #e3e5e7; color: #333; }
+    .btn-danger { background: #f25d8e; color: white; }
+    .btn-debug { background: #ff9800; color: white; }
+    .btn-small {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .log-box {
+      margin-top: 12px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      padding: 8px;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-box .error { color: #f44747; }
+    .log-box .success { color: #6a9955; }
+    .log-box .info { color: #569cd6; }
+    .slider-group {
+      margin-bottom: 12px;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .slider-header label { margin-bottom: 0; }
+    .slider-value {
+      font-size: 14px;
+      font-weight: bold;
+      color: #00a1d6;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: #ddd;
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #00a1d6;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .control-group {
+      display: none;
+      margin-bottom: 12px;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+    .checkbox-group label {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: #333;
+    }
+    .status-bar {
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .status-idle { background: #e3e5e7; color: #666; }
+    .status-buffering { background: #fff3cd; color: #856404; }
+    .status-playing { background: #d4edda; color: #155724; }
+    .status-error { background: #f8d7da; color: #721c24; }
+    .accum-box {
+      display: none;
+      margin-bottom: 10px;
+      background: #fff3cd;
+      border: 1px solid #ffe69c;
+      border-radius: 4px;
+      padding: 8px 10px;
+    }
+    .accum-label {
+      font-size: 12px;
+      color: #856404;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .accum-track {
+      width: 100%;
+      height: 8px;
+      background: #ffe69c;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .accum-fill {
+      height: 100%;
+      background: #ff9800;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>B站直播间画面替换</h1>
+
+  <div class="input-group">
+    <label>目标直播间ID或URL</label>
+    <input type="text" id="roomId" placeholder="例如: 6 或 https://live.bilibili.com/6">
+    <button class="btn btn-secondary btn-small" id="refreshQualities">刷新可用画质</button>
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" id="showOriginal">
+    <label for="showOriginal">显示原直播间小窗口</label>
+  </div>
+
+  <button class="btn btn-primary" id="replaceBtn">替换画面</button>
+  <button class="btn btn-secondary" id="restoreBtn">恢复原始画面</button>
+  <button class="btn btn-danger" id="clearBtn">清除设置</button>
+  <button class="btn btn-debug" id="debugBtn" style="display:none;">调试: 测试API</button>
+
+  <div id="statusBar" class="status-bar status-idle">未开始</div>
+
+  <div id="accumBox" class="accum-box">
+    <div class="accum-label">
+      <span>积累延迟中（暂播实时画面）</span>
+      <span id="accumText">0.0s / 0s</span>
+    </div>
+    <div class="accum-track"><div id="accumFill" class="accum-fill"></div></div>
+  </div>
+
+  <div class="control-group" id="controlGroup">
+    <div class="input-group">
+      <label>画质选择</label>
+      <select id="qualitySelect">
+        <option value="bluray">蓝光</option>
+      </select>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-header">
+        <label>延迟调整</label>
+        <span class="slider-value" id="delayValue">0秒</span>
+      </div>
+      <input type="range" id="delaySlider" min="0" max="60" value="0" step="1">
+    </div>
+
+    <button class="btn btn-debug" id="refreshStreamBtn">刷新画面（出错时重试）</button>
+  </div>
+
+  <div class="log-box" id="logBox"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

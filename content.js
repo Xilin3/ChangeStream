@@ -330,7 +330,9 @@ async function replaceStream(targetRoomId, quality = 'bluray', showOrig = false)
   originalVideo.style.display = 'none';
   newVideo = document.createElement('video');
   newVideo.id = 'changestream-video';
-  newVideo.autoplay = true; newVideo.muted = true; newVideo.controls = true;
+  // 目标流只作为画面层，隐藏浏览器原生控制栏，保留当前直播间自己的弹幕/控制层。
+  newVideo.autoplay = true; newVideo.muted = true; newVideo.controls = false;
+  newVideo.removeAttribute('controls');
   originalVideo.parentElement.insertBefore(newVideo, originalVideo.nextSibling);
 
   showOriginal = showOrig;

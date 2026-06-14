@@ -7,3 +7,8 @@
   background: #000;
   object-fit: contain;
 }
+
+#changestream-video::-webkit-media-controls,
+#changestream-video::-webkit-media-controls-enclosure {
+  display: none !important;
+}

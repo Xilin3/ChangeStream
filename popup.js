@@ -15,6 +15,8 @@ const accumBox = document.getElementById('accumBox');
 const accumText = document.getElementById('accumText');
 const accumFill = document.getElementById('accumFill');
 const refreshStreamBtn = document.getElementById('refreshStreamBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const volumeValue = document.getElementById('volumeValue');
 
 const STATUS_LABEL = { idle: '未开始', buffering: '缓冲中', playing: '播放中', error: '出错' };
 function renderStatus(status) {
@@ -59,6 +61,10 @@ function updateDelayDisplay(value) {
   delayValue.textContent = `${value}秒`;
 }
 
+function updateVolumeDisplay(value) {
+  volumeValue.textContent = `${value}%`;
+}
+
 function updateQualitySelect(qualities) {
   qualitySelect.innerHTML = '';
   qualities.forEach(q => {
@@ -82,7 +88,7 @@ async function fetchAndUpdateQualities(roomId) {
   });
 }
 
-chrome.storage.local.get(['targetRoomId', 'isActive', 'delay', 'quality', 'showOriginal', 'availableQualities', 'playbackStatus'], (data) => {
+chrome.storage.local.get(['targetRoomId', 'isActive', 'delay', 'quality', 'showOriginal', 'availableQualities', 'playbackStatus', 'volume'], (data) => {
   if (data.targetRoomId) roomIdInput.value = data.targetRoomId;
   if (data.isActive) { log('上次替换仍处于激活状态', 'info'); controlGroup.style.display = 'block'; }
   if (data.delay !== undefined) { delaySlider.value = data.delay; updateDelayDisplay(data.delay); }
@@ -91,6 +97,7 @@ chrome.storage.local.get(['targetRoomId', 'isActive', 'delay', 'quality', 'showO
     updateQualitySelect(data.availableQualities);
     if (data.quality) qualitySelect.value = data.quality;
   }
+  if (data.volume !== undefined) { volumeSlider.value = data.volume; updateVolumeDisplay(data.volume); }
   renderStatus(data.playbackStatus);
 });
 
@@ -215,6 +222,20 @@ delaySlider.addEventListener('input', () => {
       }
     });
   }, 200);
+});
+
+volumeSlider.addEventListener('input', () => {
+  const value = parseInt(volumeSlider.value);
+  updateVolumeDisplay(value);
+  chrome.storage.local.set({ volume: value });
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'setVolume', volume: value / 100 }, (response) => {
+        if (chrome.runtime.lastError) return;
+      });
+    }
+  });
 });
 
 qualitySelect.addEventListener('change', () => {

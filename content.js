@@ -335,6 +335,11 @@ async function replaceStream(targetRoomId, quality = 'bluray', showOrig = false)
   newVideo.removeAttribute('controls');
   originalVideo.parentElement.insertBefore(newVideo, originalVideo.nextSibling);
 
+  // 应用存储的音量设置
+  chrome.storage.local.get(['volume'], (data) => {
+    if (data.volume !== undefined) newVideo.volume = data.volume / 100;
+  });
+
   showOriginal = showOrig;
   if (showOriginal) setTimeout(() => createOriginalWindow(), 500);
 
@@ -399,12 +404,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     else { hideOriginalWindow(); }
     sendResponse({ success: true, showOriginal });
   }
+  else if (msg.action === 'setVolume') {
+    if (newVideo) newVideo.volume = msg.volume;
+    sendResponse({ success: true });
+  }
   return true;
 });
 
-chrome.storage.local.get(['targetRoomId', 'isActive', 'delay', 'quality', 'showOriginal'], (data) => {
+chrome.storage.local.get(['targetRoomId', 'isActive', 'delay', 'quality', 'showOriginal', 'volume'], (data) => {
   if (data.delay) delaySeconds = data.delay;
   if (data.quality) currentQuality = data.quality;
   if (data.showOriginal) showOriginal = data.showOriginal;
+  if (data.volume !== undefined && newVideo) newVideo.volume = data.volume;
   if (data.isActive && data.targetRoomId) setTimeout(() => replaceStream(data.targetRoomId, currentQuality, showOriginal), 2000);
 });

@@ -1,8 +1,14 @@
 param(
-    [string]$Version = "1.0.0"
+    [string]$Version = ""
 )
 
 $distDir = "dist"
+
+# 如果没有指定版本，从 manifest.json 读取
+if (-not $Version) {
+    $Version = & node -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json','utf8')).version)"
+}
+
 $zipName = "ChangeStream-v$Version.zip"
 
 if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force }

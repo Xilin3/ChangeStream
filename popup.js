@@ -146,6 +146,7 @@ replaceBtn.addEventListener('click', async () => {
       log('替换成功!', 'success');
       if (response.qualityName) log(`画质: ${response.qualityName}`);
       if (response.allStreams) response.allStreams.forEach(s => log(`  ${s.proto}/${s.format}/${s.codec}: ${s.base_url.substring(0, 80)}`));
+      if (response._debug) log(`容器: ${response._debug.hostId}#${response._debug.hostCls} ${response._debug.hostSize} 原视频:${response._debug.hasVideo} iframe替换:${response._debug.iframeReplaced}`, 'info');
       controlGroup.style.display = 'block';
     } else {
       log(`替换失败: ${response?.error || '未知错误'}`, 'error');
@@ -173,15 +174,23 @@ clearBtn.addEventListener('click', async () => {
 });
 
 debugBtn.addEventListener('click', async () => {
-  const roomId = extractRoomId(roomIdInput.value) || '6';
-  log(`=== 调试API === roomId: ${roomId}`);
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
-  chrome.tabs.sendMessage(tab.id, { action: 'getAvailableQualities', roomId }, (response) => {
-    if (response?.qualities?.length > 0) {
-      log(`可用画质: ${response.qualities.map(q => q.name).join(', ')}`, 'info');
-    } else {
-      log('无可用画质', 'error');
+  log('=== 页面结构调试 ===', 'info');
+  chrome.tabs.sendMessage(tab.id, { action: 'dumpDebug' }, (response) => {
+    if (chrome.runtime.lastError) { log('通信失败: ' + chrome.runtime.lastError.message, 'error'); return; }
+    if (response) {
+      log('视口: ' + (response.vp || '?'));
+      log('video数量: ' + response.videoCount);
+      if (response.pctnr) log('player-ctnr: ' + response.pctnr.w + 'x' + response.pctnr.h + ' @' + response.pctnr.x + ',' + response.pctnr.y, 'info');
+      else log('player-ctnr: 不存在', 'error');
+      if (response.livePlayer) log('live-player: ' + response.livePlayer.w + 'x' + response.livePlayer.h + ' @' + response.livePlayer.x + ',' + response.livePlayer.y);
+      else log('live-player: 不存在');
+      if (response.lnrp) log('live-non-revenue-player: ' + response.lnrp.w + 'x' + response.lnrp.h + ' @' + response.lnrp.x + ',' + response.lnrp.y);
+      if (response.csVideo) log('changestream-video: ' + response.csVideo.w + 'x' + response.csVideo.h + ' @' + response.csVideo.x + ',' + response.csVideo.y + ' z:' + response.csVideo.zIndex + ' pos:' + response.csVideo.position + ' css:' + response.csVideo.css, 'success');
+      else log('changestream-video: 不存在', 'error');
+      if (response.iframes) response.iframes.forEach(function(f) { log('  iframe: ' + f.w + 'x' + f.h + ' @' + f.x + ',' + f.y + ' src:' + f.src); });
+      if (response.videos) response.videos.forEach(function(v) { log('  video: id=' + v.id + ' ' + v.w + 'x' + v.h + ' @' + v.x + ',' + v.y); });
     }
   });
 });

@@ -1,11 +1,7 @@
 #changestream-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background: #000;
   object-fit: contain;
+  transform: translateZ(0);
 }
 
 #changestream-video::-webkit-media-controls,
